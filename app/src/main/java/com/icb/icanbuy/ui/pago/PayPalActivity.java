@@ -47,7 +47,7 @@ public class PayPalActivity extends AppCompatActivity {
                                         .amount(
                                                 new Amount.Builder()
                                                         .currencyCode(CurrencyCode.USD)
-                                                        .value("10.00")
+                                                        .value("1500.00")
                                                         .build()
                                         )
                                         .build()

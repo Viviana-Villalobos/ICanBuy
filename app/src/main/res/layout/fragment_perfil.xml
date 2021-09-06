@@ -221,7 +221,8 @@
                             android:layout_height="wrap_content"
                             android:text="Teléfono"
                             android:textColor="@color/headings"
-                            android:textSize="13sp" />
+                            android:textSize="13sp"
+                            android:id="@+id/titulo_telefono"/>
 
                         <TextView
                             android:id="@+id/tv_telefono"
@@ -251,7 +252,8 @@
                             android:layout_height="wrap_content"
                             android:text="Tipo de identificación"
                             android:textColor="@color/headings"
-                            android:textSize="13sp" />
+                            android:textSize="13sp"
+                            android:id="@+id/titulo_tipo"/>
 
                         <TextView
                             android:id="@+id/tv_tipoID"
@@ -281,7 +283,8 @@
                             android:layout_height="wrap_content"
                             android:text="Cédula"
                             android:textColor="@color/headings"
-                            android:textSize="13sp" />
+                            android:textSize="13sp"
+                            android:id="@+id/titulo_ced"/>
 
                         <TextView
                             android:id="@+id/tv_cedula"

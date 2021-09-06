@@ -19,6 +19,8 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -41,7 +43,7 @@ import java.util.Map;
 
 public class PerfilFragment extends Fragment {
 private TextView tv_name, tv_fecha,tv_Correo, tv_telefono, tv_tipoID,
-        tv_Cedula, tv_Compras, tv_Cupones;
+        tv_Cedula, tv_Compras, tv_Cupones, titulo_telefono, titulo_tipo, titulo_ced;
 private ImageView iv_fotoperfil;
 private FirebaseDatabase database;
 private DatabaseReference reference;
@@ -93,6 +95,10 @@ private static final String USERS="users";
         btnEditarPerfil=root.findViewById(R.id.btn_EditaPerfil);
         btn_BorrarPerfil=root.findViewById(R.id.btn_BorrarPerfil);
 
+        titulo_telefono=root.findViewById(R.id.titulo_telefono);
+        titulo_tipo=root.findViewById(R.id.titulo_tipo);
+        titulo_ced=root.findViewById(R.id.titulo_ced);
+
         iv_fotoperfil.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -103,84 +109,121 @@ private static final String USERS="users";
             }
         });
 
-        reference.child(userID).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                try {
-                    for (DataSnapshot childSnapshot : snapshot.getChildren()) {
-                        Usuario userProfile = snapshot.getValue(Usuario.class);
+        if(user!=null && reference!=null && userID!=null){
+            reference.child(userID).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    try {
+                        for (DataSnapshot childSnapshot : snapshot.getChildren()) {
+                            Usuario userProfile = snapshot.getValue(Usuario.class);
 
-                        if (userProfile != null) {
-                            String fullname = (userProfile.getNombre()).concat(" ".concat(userProfile.getApellido()));
-                            String correo = userProfile.getCorreo();
-                            String fechaNac = userProfile.getFechaNac();
+                            if (userProfile != null) {
+                                String fullname = (userProfile.getNombre()).concat(" ".concat(userProfile.getApellido()));
+                                String correo = userProfile.getCorreo();
+                                String fechaNac = userProfile.getFechaNac();
 
-                            if(userProfile.getCedula()!=null){
-                                String cedula = userProfile.getCedula();
-                                tv_Cedula.setText(cedula);
-                                cedulaString=userProfile.getCedula();
+                                if(userProfile.getCedula()!=null){
+                                    String cedula = userProfile.getCedula();
+                                    tv_Cedula.setText(cedula);
+                                    cedulaString=userProfile.getCedula();
+
+                                }
+                                if(userProfile.getTelefono()!=null){
+                                    String telefono = userProfile.getTelefono();
+                                    tv_telefono.setText(telefono);
+                                    telefonoString=userProfile.getTelefono();
+                                }
+                                if(userProfile.getTipoID()!=null){
+                                    String tipoID = userProfile.getTipoID();
+                                    tv_tipoID.setText(tipoID);
+                                    tipoIDString=userProfile.getTipoID();
+                                }
+
+                                tv_name.setText(fullname);
+                                tv_fecha.setText(fechaNac);
+                                tv_Correo.setText(correo);
+
+                                nombreString=userProfile.getNombre();
+                                apellidoString=userProfile.getApellido();
+                                correoString=userProfile.getCorreo();
+                                fechaString=userProfile.getFechaNac();
+
+
 
                             }
-                            if(userProfile.getTelefono()!=null){
-                                String telefono = userProfile.getTelefono();
-                                tv_telefono.setText(telefono);
-                                telefonoString=userProfile.getTelefono();
-                            }
-                            if(userProfile.getTipoID()!=null){
-                                String tipoID = userProfile.getTipoID();
-                                tv_tipoID.setText(tipoID);
-                                tipoIDString=userProfile.getTipoID();
-                            }
-
-                            tv_name.setText(fullname);
-                            tv_fecha.setText(fechaNac);
-                            tv_Correo.setText(correo);
-
-                            nombreString=userProfile.getNombre();
-                            apellidoString=userProfile.getApellido();
-                            correoString=userProfile.getCorreo();
-                            fechaString=userProfile.getFechaNac();
-
-
-
                         }
+                    }catch (Exception ex){
+                        ex.printStackTrace();
                     }
-                }catch (Exception ex){
-                    ex.printStackTrace();
                 }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    Toast.makeText(getContext(), "¡Error!", Toast.LENGTH_LONG).show();
+                }
+            });
+
+
+
+
+            btnEditarPerfil.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    EditarPerfil editarPerfil = new EditarPerfil();
+
+                    Bundle bundle = new Bundle();
+                    bundle.putString("nombre", nombreString);
+                    bundle.putString("apellido", apellidoString);
+                    bundle.putString("correo", correoString);
+                    bundle.putString("fechaNac", fechaString);
+                    bundle.putString("telefono", telefonoString);
+                    bundle.putString("tipoID", tipoIDString);
+                    bundle.putString("cedula", cedulaString);
+
+                    editarPerfil.setArguments(bundle);
+
+                    FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                    transaction.replace(R.id.fragmentPerfil, editarPerfil);
+
+                    transaction.commit();
+                }
+            });//editar perfil
+
+        }//verificar que ingresó con Firebase
+        else{
+            GoogleSignInAccount acct = GoogleSignIn.getLastSignedInAccount(getActivity());
+            if (acct != null) {
+                String personName = acct.getDisplayName();
+                String personGivenName = acct.getGivenName();
+                String personFamilyName = acct.getFamilyName();
+                String personEmail = acct.getEmail();
+                String personId = acct.getId();
+                Uri personPhoto = acct.getPhotoUrl();
+
+                tv_name.setText(personName);
+                tv_Correo.setText(personEmail);
+                tv_fecha.setText(" ");
+                tv_telefono.setText(" ");
+                tv_Cedula.setText(" ");
+                tv_tipoID.setText(" ");
+                titulo_telefono.setText(" ");
+                titulo_tipo.setText(" ");
+                titulo_ced.setText(" ");
+
+            }else{
+                tv_name.setText(" ");
+                tv_Correo.setText(" ");
+                tv_fecha.setText(" ");
+                tv_telefono.setText(" ");
+                tv_Cedula.setText(" ");
+                tv_tipoID.setText(" ");
+                titulo_telefono.setText(" ");
+                titulo_tipo.setText(" ");
+                titulo_ced.setText(" ");
             }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(getContext(), "¡Error!", Toast.LENGTH_LONG).show();
-            }
-        });
+        }
 
 
-
-
-        btnEditarPerfil.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-               EditarPerfil editarPerfil = new EditarPerfil();
-
-                Bundle bundle = new Bundle();
-                bundle.putString("nombre", nombreString);
-                bundle.putString("apellido", apellidoString);
-                bundle.putString("correo", correoString);
-                bundle.putString("fechaNac", fechaString);
-                bundle.putString("telefono", telefonoString);
-                bundle.putString("tipoID", tipoIDString);
-                bundle.putString("cedula", cedulaString);
-
-                editarPerfil.setArguments(bundle);
-
-               FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                transaction.replace(R.id.fragmentPerfil, editarPerfil);
-
-                transaction.commit();
-            }
-        });//editar perfil
 
         btn_BorrarPerfil.setOnClickListener(new View.OnClickListener() {
             @Override

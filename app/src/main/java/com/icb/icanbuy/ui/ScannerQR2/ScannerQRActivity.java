@@ -118,7 +118,7 @@ public class ScannerQRActivity extends AppCompatActivity implements AsyncTaskCal
                         }catch (Exception ex){
                             ex.printStackTrace();
                         }
-
+                        //ejecución de http post
                         new PostAPI().execute();
                         Toast.makeText(getApplicationContext(),"Conexión exitosa", Toast.LENGTH_SHORT).show();
                         (new Handler()).postDelayed(this::irMenu, 2000);
@@ -226,11 +226,45 @@ public class ScannerQRActivity extends AppCompatActivity implements AsyncTaskCal
                             Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(token));
                             startActivity(browserIntent);
                         } else if(token.equals("ICBTABLET01")){
-                            Intent i = new Intent(getApplicationContext(), MenuActivity.class);
-                            startActivity(i);
-                        }
+                            user= FirebaseAuth.getInstance().getCurrentUser();
+                            reference= FirebaseDatabase.getInstance().getReference("Users");
+                            userID=user.getUid();
 
-                        else {
+
+                            reference.child(userID).addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                    try {
+                                        for (DataSnapshot childSnapshot : snapshot.getChildren()) {
+                                            Usuario userProfile = snapshot.getValue(Usuario.class);
+
+                                            if (userProfile != null) {
+                                                nombreString= (userProfile.getNombre()).concat(" ".concat(userProfile.getApellido()));
+
+
+                                            }
+                                        }
+                                    }catch (Exception ex){
+                                        ex.printStackTrace();
+                                    }
+                                    //ejecución de http post
+                                    new ScannerQRActivity.PostAPI().execute();
+                                    Toast.makeText(getApplicationContext(),"Conexión exitosa", Toast.LENGTH_SHORT).show();
+                                    (new Handler()).postDelayed(this::irMenu, 2000);
+                                }//on data change
+
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError error) {
+
+                                }
+
+                                private void irMenu() {
+                                    Intent intent = new Intent(getApplicationContext(), MenuActivity.class);
+                                    startActivity(intent);
+                                }
+                        });
+
+                        }else {
                             // comparte en otras apps
                             Intent shareIntent = new Intent();
                             shareIntent.setAction(Intent.ACTION_SEND);
@@ -324,39 +358,7 @@ public class ScannerQRActivity extends AppCompatActivity implements AsyncTaskCal
         params.put( "totalAPagar", "0.00");
         return params;
     }
-/*
-    public static String obtenerNombre(){
-        user= FirebaseAuth.getInstance().getCurrentUser();
-        reference= FirebaseDatabase.getInstance().getReference("Users");
-        userID=user.getUid();
 
-
-        reference.child(userID).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                try {
-                    for (DataSnapshot childSnapshot : snapshot.getChildren()) {
-                        Usuario userProfile = snapshot.getValue(Usuario.class);
-
-                        if (userProfile != null) {
-                            String fullname = (userProfile.getNombre()).concat(" ".concat(userProfile.getApellido()));
-
-                            nombreString=(userProfile.getNombre()).concat(" ".concat(userProfile.getApellido()));
-
-                        }
-                    }
-                }catch (Exception ex){
-                    ex.printStackTrace();
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
-        });
-        return nombreString;
-    }*/
     public static String obtenerID(){
         user= FirebaseAuth.getInstance().getCurrentUser();
         reference= FirebaseDatabase.getInstance().getReference("Users");
